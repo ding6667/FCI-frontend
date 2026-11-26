@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Icon } from '@/components/Icon'
 import { ModalFoot, ModalHead, ModalShell } from '@/components/ModalShell'
-import type { DataScope, EmployeeStatus, PermissionVO } from '@/api/types'
+import type { DataScope, EmployeeStatus, EmployeeVO, PermissionVO } from '@/api/types'
 import { ALL_PERMISSIONS, ACTION_LABEL, APPROVE_LABEL, BIZ_LABEL, PERMISSION_TREE, SCOPE_LABEL, STATUS_LABEL } from '@/data/adminMock'
 import { money } from '@/lib/format'
 import { useAdminStore } from '@/store/useAdminStore'
@@ -195,7 +195,22 @@ export function EmployeeDetailModal({
   onAction: (action: EmployeeAction) => void
   can: (code: string) => boolean
 }) {
-  const emp = useAdminStore((s) => s.employees.find((e) => e.id === empId))
+  const cached = useAdminStore((s) => s.employees.find((e) => e.id === empId))
+  const loadEmployee = useAdminStore((s) => s.loadEmployee)
+  const [detail, setDetail] = useState<EmployeeVO | null>(null)
+
+  // 打开即拉一次详情（#5），拿到服务端最新的角色、证照与额度
+  useEffect(() => {
+    let alive = true
+    void loadEmployee(empId).then((vo) => {
+      if (alive && vo) setDetail(vo)
+    })
+    return () => {
+      alive = false
+    }
+  }, [empId, loadEmployee])
+
+  const emp = detail ?? cached
   if (!emp) return null
   const expired = emp.healthCertExpire ? emp.healthCertExpire < nowDate() : false
 

@@ -19,6 +19,7 @@ import {
   createRole as apiCreateRole,
   deleteRole as apiDeleteRole,
   disableOnLeave as apiDisableOnLeave,
+  employeeDetail as apiEmployeeDetail,
   employeesPage as apiEmployeesPage,
   operationLogsPage as apiOperationLogsPage,
   permissionTree as apiPermissionTree,
@@ -79,6 +80,8 @@ interface AdminStore {
   refresh: () => Promise<void>
 
   /* 员工 #4 ~ #12 */
+  /** 详情 #5：仅 API 模式真正请求，mock 模式直接读内存；失败时回退列表里的快照 */
+  loadEmployee: (empId: string) => Promise<EmployeeVO | null>
   saveEmployee: (cmd: EmployeeSaveCmd, empId?: string) => Promise<void>
   resetPassword: (empId: string, newPassword: string) => Promise<void>
   updateStatus: (empId: string, status: Extract<EmployeeStatus, 1 | 2>) => Promise<void>
@@ -156,6 +159,17 @@ export const useAdminStore = create<AdminStore>()((set, get) => ({
   },
 
   /* ----------------------------- 员工 ----------------------------- */
+
+  loadEmployee: async (empId) => {
+    if (!IS_API_MODE) return byId(get().employees, empId) ?? null
+    try {
+      const vo = await apiEmployeeDetail(empId)
+      set((s) => ({ employees: s.employees.map((e) => (e.id === empId ? vo : e)) }))
+      return vo
+    } catch {
+      return byId(get().employees, empId) ?? null
+    }
+  },
 
   saveEmployee: async (cmd, empId) => {
     if (IS_API_MODE) {
