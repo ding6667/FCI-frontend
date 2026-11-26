@@ -57,6 +57,13 @@ export default function LoginPage() {
     e.preventDefault()
     if (submitting || lockLeft > 0) return
 
+    // 未勾选规范确认：直接拦在门口，不发登录请求
+    if (!agree) {
+      setErrors({ form: '请先阅读并勾选《员工操作规范》，未确认不得进入作业台' })
+      return
+    }
+    setErrors({})
+
     setSubmitting(true)
     const result = await loginAsync(staffId, password)
     setSubmitting(false)
@@ -244,16 +251,23 @@ export default function LoginPage() {
                 </span>
               </label>
 
-              <div className="login-agree">
+              <div className={`login-agree ${errors.form && !agree ? 'err' : ''}`}>
                 <button
                   type="button"
                   className={`check-box ${agree ? 'on' : ''}`}
-                  onClick={() => setAgree((v) => !v)}
+                  onClick={() => {
+                    const next = !agree
+                    setAgree(next)
+                    if (next && errors.form) setErrors((v) => ({ ...v, form: undefined }))
+                  }}
                   aria-pressed={agree}
+                  aria-label="我已阅读并同意员工操作规范"
                 >
                   <Icon name="i-check" />
                 </button>
-                <span>登录即代表已阅读《员工操作规范》，敏感操作将按授权额度留痕。</span>
+                <span>
+                  我已阅读并同意《员工操作规范》，敏感操作将按授权额度留痕。<em>必选</em>
+                </span>
               </div>
 
               <span className="field-err">{errors.form}</span>

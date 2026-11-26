@@ -128,7 +128,10 @@ svg{display:block}
 .code-line .login-input{flex:1}
 .code-btn{flex:0 0 auto;height:48px;padding:0 13px;border:1px solid var(--line-strong);border-radius:9px;background:var(--surface-2);font-size:10px;font-weight:600;color:var(--green);white-space:nowrap}
 .code-btn:disabled{color:var(--muted);cursor:default}
-.login-agree{display:flex;align-items:flex-start;gap:8px;font-size:10px;line-height:1.6;color:var(--muted);margin:9px 0 13px}
+.login-agree{display:flex;align-items:flex-start;gap:8px;font-size:10px;line-height:1.6;color:var(--muted);margin:9px 0 13px;transition:color .16s}
+.login-agree em{display:inline-block;margin-left:6px;padding:0 5px;border-radius:3px;font-style:normal;font-size:9px;font-weight:700;letter-spacing:.04em;color:var(--red);background:var(--red-soft);vertical-align:1px}
+.login-agree.err{color:var(--red)}
+.login-agree.err .check-box{border-color:var(--red);box-shadow:0 0 0 3px rgba(194,58,40,.14)}
 .check-box{flex:0 0 auto;width:17px;height:17px;border:1px solid var(--line-strong);border-radius:4px;background:var(--surface);display:grid;place-items:center;margin-top:1px}
 .check-box svg{width:11px;height:11px;opacity:0;color:var(--cream)}
 .check-box.on{background:var(--green);border-color:var(--green)}
