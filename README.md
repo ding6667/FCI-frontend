@@ -63,8 +63,44 @@ src/
 - 图标使用原型内联 SVG 雪碧图（`IconSprite` + `<Icon name="i-xxx" />`），不引入图标字体。
 - 交互态（hover / active / 禁用 / 离线）与文案均按原型保留，Mock 数据集中在 `src/data/mock.ts`，便于替换为接口数据。
 
-## 与后端对接
+## 与后端对接（员工系统 SYS · employee-api.md v1.0）
 
-1. `src/api/http.ts` 已封装 Axios 实例（baseURL 读取 `VITE_API_BASE_URL`，默认 `/api`；统一注入 Bearer Token，预留 401 与业务错误码处理）。
-2. 接口方案确定后，在 `src/api/` 下按域新增 `pos.ts`、`expiry.ts`、`orders.ts`、`inventory.ts`、`members.ts`，页面通过 store action 调用，保持组件层不直接依赖请求。
-3. Store 中的 mock 初始态替换为服务端返回，`offline` 离线演示开关保留（本地缓存价签与券、联网后补传）。
+### 运行模式
+
+通过 `.env` 的 `VITE_API_MODE` 切换，参考 `.env.example`：
+
+| 模式 | 说明 |
+| --- | --- |
+| `mock`（默认） | 不依赖后端，登录与全部业务数据走内置演示数据，便于评审与演示 |
+| `api` | 登录、会话、权限、审批走 pig-boot（`http://localhost:9999/admin`），业务数据仍为演示数据 |
+
+```bash
+cp .env.example .env
+# 改 VITE_API_MODE=api 即接入真实后端；开发期 /admin 由 vite 代理到 9999 端口
+```
+
+### 已对接的接口
+
+| 能力 | 文件 | 接口 |
+| --- | --- | --- |
+| 登录 / 刷新 / 注销 / 当前身份 / 权限查询 | `src/api/auth.ts` | #1 `POST /oauth2/token`、#2 `GET /auth/me`、#3 `GET /employees/{empId}:permissions`、`DELETE /token/logout` |
+| 审批提交 / 裁决 / 校验 / 列表 / 待办数 | `src/api/approval.ts` | #19 ~ #22 |
+| 员工、角色、权限树、审计 | `src/api/sys.ts` | #4 ~ #18、#23（供后续管理页复用，暂无页面） |
+| 统一请求层 | `src/api/http.ts` | 令牌注入、`Number(code)===0` 判定、401 单次刷新重放、错误码归一 |
+| 令牌存储 | `src/api/token.ts` | **sessionStorage**（门店共用终端禁止 localStorage，规范 §1.3） |
+
+### 关键约定（务必遵守）
+
+1. **成功判定**用 `Number(res.code) === 0`——成功是数字 `0`，业务失败是字符串 `"SYS_00x"`。
+2. **登录失败**：`bad_credentials` 与 `username_not_found` 统一提示「账号或口令错误」，不得暴露账号是否存在；`user_locked` 需禁用登录 30 分钟倒计时（登录页已实现）。
+3. **权限**：登录后从 `/auth/me` 的 `permissions` 构建集合，用 store 的 `can(code)` 控制入口；不要把权限码硬编码进页面。演示模式返回 19 个权限点全集。
+4. **写接口不传 `operatorEmpId`**，由服务端从登录态取。
+5. **审批快照** `snapshotJson` 必须是 `JSON.stringify(obj)` 后的字符串；`REJECT` 时 `remark` 必填。
+
+### 尚未接入（等其他域接口）
+
+- 收银台的商品/会员/订单/支付（ART / MEM / OMS 域）
+- 临期批次、库存、补货（STK / PUR 域）——S4 的 7 折/5 折、S6 的报损在拿到 STK 域接口后，
+  用 `submitApproval` + `checkApproval` 串起「提交审批 → 待审 → 裁决 → 写入前校验」链路
+- 报表 KPI 与销售曲线（报表域）
+

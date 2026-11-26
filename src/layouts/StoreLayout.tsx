@@ -9,12 +9,14 @@ interface NavItem {
   path: string
   label: string
   icon: string
+  /** 入口所需权限点（C-SEED@1）；无权限则隐藏，见 employee-api.md §2.5 */
+  perm?: string
 }
 
 const NAV: NavItem[] = [
   { path: '/app/dashboard', label: '工作台', icon: 'i-dash' },
   { path: '/app/pos', label: '收银台', icon: 'i-pos' },
-  { path: '/app/expiry', label: '临期处置', icon: 'i-expiry' },
+  { path: '/app/expiry', label: '临期处置', icon: 'i-expiry', perm: 'art:price:change' },
   { path: '/app/orders', label: '订单履约', icon: 'i-orders' },
   { path: '/app/inventory', label: '库存批次', icon: 'i-stock' },
   { path: '/app/members', label: '会员', icon: 'i-members' },
@@ -41,6 +43,7 @@ export default function StoreLayout() {
   const orders = useAppStore((s) => s.orders)
   const toggleOffline = useAppStore((s) => s.toggleOffline)
   const openModal = useAppStore((s) => s.openModal)
+  const can = useAppStore((s) => s.can)
 
   const pendingExpiry = batches.filter((b) => b.status === '待处置').length
   const pendingOrders = orders.filter((o) => o.status === '待拣货' || o.status === '待打包').length
@@ -66,7 +69,7 @@ export default function StoreLayout() {
 
         <nav className="rail-nav" aria-label="门店台导航">
           <p className="rail-label">STORE OPERATIONS</p>
-          {NAV.map((item) => {
+          {NAV.filter((item) => !item.perm || can(item.perm)).map((item) => {
             const badge = badgeOf(item.path)
             return (
               <NavLink

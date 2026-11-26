@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# 本地环境变量（保留 .env.example 入库）
+.env
+.env.local
+!.env.example
+
 # 本地校验产物（截图 / 参考资料 / 工作区记忆，不入库）
 .shots
 .tmp_ref

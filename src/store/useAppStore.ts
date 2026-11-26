@@ -1,5 +1,9 @@
 import { create, type StateCreator } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
+import { login as apiLogin, logout as apiLogout, me as apiMe } from '@/api/auth'
+import { IS_API_MODE } from '@/api/env'
+import { toApiError } from '@/api/http'
+import { clearTokens, hasSession } from '@/api/token'
 import { BATCHES, INVENTORY, MEMBERS, ORDERS } from '@/data/mock'
 import { calcTotals, lineBase, lineNet, productById } from '@/lib/pricing'
 import { levelOf } from '@/lib/pricing'
@@ -25,7 +29,35 @@ export interface LoginResult {
   ok: boolean
   field?: 'id' | 'pwd' | 'form'
   message?: string
+  /** 业务错误码：SYS_001 账号或口令错误、SYS_003 冻结/锁定（需倒计时） */
+  code?: string
 }
+
+/**
+ * 演示模式下的权限全集（C-SEED@1 的 19 个权限点）。
+ * 真实模式一律以 /auth/me 返回的 permissions 为准，禁止把权限码硬编码到页面。
+ */
+const DEMO_PERMISSIONS = [
+  'sys:employee:list',
+  'sys:employee:add',
+  'sys:employee:edit',
+  'sys:employee:leave',
+  'sys:employee:reset',
+  'sys:employee:grant',
+  'sys:quota:update',
+  'sys:role:list',
+  'sys:role:add',
+  'sys:role:edit',
+  'sys:role:del',
+  'sys:role:grant',
+  'sys:perm:list',
+  'sys:approval:list',
+  'sys:approval:submit',
+  'sys:approval:decide',
+  'sys:log:list',
+  'art:price:change',
+  'stk:waste:record',
+]
 
 export interface ToastState {
   message: string
@@ -38,8 +70,16 @@ interface AppStore {
   loggedIn: boolean
   employee: typeof EMPLOYEE
   storeName: string
-  login: (id: string, pwd: string) => LoginResult
+  /** /auth/me 返回的权限码集合，页面按它控制入口显隐 */
+  permissions: string[]
+  /** 自身审批额度：额度设置上限、自动通过阈值 */
+  approvalLimit: number
+  loginAsync: (id: string, pwd: string) => Promise<LoginResult>
   signOut: () => void
+  /** 刷新页面后用令牌恢复身份；无令牌或失败则视为未登录 */
+  restoreSession: () => Promise<void>
+  /** 权限判定：演示模式恒为 true，真实模式查 permissions */
+  can: (code: string) => boolean
 
   /* ---------------- 全局 UI ---------------- */
   offline: boolean
@@ -118,22 +158,91 @@ const PAY_NAME: Record<PayMethod, string> = {
   balance: '会员余额',
 }
 
+/** 把 /auth/me 的结果映射成登录态切片 */
+function profileState(profile: {
+  empName: string
+  empNo: string
+  jobTitle?: string | null
+  storeName?: string | null
+  permissions?: string[]
+  approvalLimit?: number
+}) {
+  return {
+    loggedIn: true,
+    employee: {
+      name: profile.empName,
+      code: profile.empNo,
+      role: profile.jobTitle ?? '员工',
+      initial: profile.empName.slice(0, 1),
+    },
+    storeName: profile.storeName ?? STORE_NAME,
+    permissions: profile.permissions ?? [],
+    approvalLimit: Number(profile.approvalLimit ?? 0),
+  }
+}
+
 const storeCreator: StateCreator<AppStore> = (set, get) => ({
   /* ---------------- 登录态 ---------------- */
   loggedIn: false,
   employee: EMPLOYEE,
   storeName: STORE_NAME,
-  login: (id, pwd) => {
-    if (!id) return { ok: false, field: 'id', message: '请输入工号或手机号' }
+  permissions: IS_API_MODE ? [] : DEMO_PERMISSIONS,
+  approvalLimit: IS_API_MODE ? 0 : 5000,
+
+  loginAsync: async (id, pwd) => {
+    const account = id.trim()
+    if (!account) return { ok: false, field: 'id', message: '请输入工号或手机号' }
     if (!pwd) return { ok: false, field: 'pwd', message: '请输入登录密码' }
-    if (id !== '1001' && id !== '13800132046') {
-      return { ok: false, field: 'form', message: '未找到该员工账号，请联系门店管理员' }
+
+    if (!IS_API_MODE) {
+      if (account !== '1001' && account !== '13800132046') {
+        return { ok: false, field: 'form', message: '未找到该员工账号，请联系门店管理员' }
+      }
+      if (pwd !== '123456') {
+        return { ok: false, field: 'pwd', message: '密码错误，请重试（演示密码 123456）' }
+      }
+      set({ loggedIn: true, permissions: DEMO_PERMISSIONS, approvalLimit: 5000 })
+      return { ok: true }
     }
-    if (pwd !== '123456') return { ok: false, field: 'pwd', message: '密码错误，请重试（演示密码 123456）' }
-    set({ loggedIn: true })
-    return { ok: true }
+
+    try {
+      const profile = await apiLogin(account, pwd)
+      set(profileState(profile))
+      return { ok: true }
+    } catch (error) {
+      const apiError = toApiError(error)
+      return { ok: false, field: 'form', message: apiError.message, code: apiError.code }
+    }
   },
-  signOut: () => set({ loggedIn: false, modal: null }),
+
+  signOut: () => {
+    if (IS_API_MODE) {
+      void apiLogout().catch(() => clearTokens())
+    }
+    set({
+      loggedIn: false,
+      modal: null,
+      permissions: IS_API_MODE ? [] : DEMO_PERMISSIONS,
+      approvalLimit: 0,
+    })
+  },
+
+  restoreSession: async () => {
+    if (!IS_API_MODE) return
+    if (!hasSession()) {
+      set({ loggedIn: false })
+      return
+    }
+    try {
+      const profile = await apiMe()
+      set(profileState(profile))
+    } catch {
+      clearTokens()
+      set({ loggedIn: false, permissions: [] })
+    }
+  },
+
+  can: (code) => !IS_API_MODE || get().permissions.includes(code),
 
   /* ---------------- 全局 UI ---------------- */
   offline: false,
@@ -520,7 +629,16 @@ const storeCreator: StateCreator<AppStore> = (set, get) => ({
 export const useAppStore = create<AppStore>()(
   persist(storeCreator, {
     name: 'fci:session',
-    partialize: (state) => ({ loggedIn: state.loggedIn }) as AppStore,
+    // 门店共用终端：会话只落 sessionStorage，禁止 localStorage（employee-api.md §1.3）
+    storage: createJSONStorage(() => sessionStorage),
+    partialize: (state) =>
+      ({
+        loggedIn: state.loggedIn,
+        employee: state.employee,
+        storeName: state.storeName,
+        permissions: state.permissions,
+        approvalLimit: state.approvalLimit,
+      }) as AppStore,
   }),
 )
 

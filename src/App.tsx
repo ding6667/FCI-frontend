@@ -4,9 +4,11 @@ import zhCN from 'antd/locale/zh_CN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import { BrowserRouter } from 'react-router-dom'
+import { UNAUTHORIZED_EVENT } from '@/api/http'
 import { Toast } from '@/components/Feedback'
 import { IconSprite } from '@/components/IconSprite'
 import AppRoutes from '@/router'
+import { useAppStore } from '@/store/useAppStore'
 
 dayjs.locale('zh-cn')
 
@@ -38,6 +40,16 @@ const theme = {
 export default function App() {
   useEffect(() => {
     document.documentElement.lang = 'zh-CN'
+
+    // 刷新页面后用 sessionStorage 里的令牌恢复身份（employee-api.md §1.3）
+    void useAppStore.getState().restoreSession()
+
+    // 任一请求 401 且刷新失败 → 清空登录态并跳回 S1；已登出时忽略，避免重复触发
+    const onUnauthorized = () => {
+      if (useAppStore.getState().loggedIn) useAppStore.getState().signOut()
+    }
+    window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized)
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized)
   }, [])
 
   return (

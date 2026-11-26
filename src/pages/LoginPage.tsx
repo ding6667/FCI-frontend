@@ -1,18 +1,25 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { IS_API_MODE } from '@/api/env'
 import { Icon } from '@/components/Icon'
 import { useAppStore } from '@/store/useAppStore'
 
 const STORES = ['望江路店 · A01', '玉林路店 · B02', '春熙路店 · C01']
 const PHONE_RE = /^1[3-9]\d{9}$/
 
+/** 秒 → m:ss，用于锁定倒计时展示 */
+const fmtLock = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`
+
 export default function LoginPage() {
   const loggedIn = useAppStore((s) => s.loggedIn)
-  const login = useAppStore((s) => s.login)
+  const loginAsync = useAppStore((s) => s.loginAsync)
   const showToast = useAppStore((s) => s.showToast)
   const navigate = useNavigate()
 
   const [mode, setMode] = useState<'login' | 'activate'>('login')
+  const [submitting, setSubmitting] = useState(false)
+  /** SYS_003（冻结/离职/连错锁定）后的 30 分钟禁用倒计时，单位秒 */
+  const [lockLeft, setLockLeft] = useState(0)
 
   /* 员工登录 */
   const [staffId, setStaffId] = useState('')
@@ -32,6 +39,12 @@ export default function LoginPage() {
     return () => window.clearTimeout(timer)
   }, [countdown])
 
+  useEffect(() => {
+    if (lockLeft <= 0) return
+    const timer = window.setTimeout(() => setLockLeft((v) => v - 1), 1000)
+    return () => window.clearTimeout(timer)
+  }, [lockLeft])
+
   if (loggedIn) return <Navigate to="/app/dashboard" replace />
 
   const switchAuth = (next: 'login' | 'activate') => {
@@ -40,18 +53,28 @@ export default function LoginPage() {
     setActErrors({})
   }
 
-  const submitLogin = (e: React.FormEvent) => {
+  const submitLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const result = login(staffId.trim(), password)
+    if (submitting || lockLeft > 0) return
+
+    setSubmitting(true)
+    const result = await loginAsync(staffId, password)
+    setSubmitting(false)
+
     if (!result.ok) {
       setErrors({
         id: result.field === 'id' ? result.message : undefined,
         pwd: result.field === 'pwd' ? result.message : undefined,
         form: result.field === 'form' ? result.message : undefined,
       })
+      // SYS_003：冻结/离职/锁定，按契约禁用登录 30 分钟并清空口令
+      if (result.code === 'SYS_003') {
+        setLockLeft(30 * 60)
+        setPassword('')
+      }
       return
     }
-    showToast('早班已开启，王芳。今日 4 单待履约')
+    showToast(`早班已开启，${useAppStore.getState().employee.name}。今日 4 单待履约`)
     navigate('/app/dashboard', { replace: true })
   }
 
@@ -234,8 +257,20 @@ export default function LoginPage() {
               </div>
 
               <span className="field-err">{errors.form}</span>
-              <button className="btn btn-primary login-submit" type="submit">
-                进入门店作业台 <Icon name="i-arrow" />
+              <button
+                className="btn btn-primary login-submit"
+                type="submit"
+                disabled={submitting || lockLeft > 0}
+              >
+                {lockLeft > 0 ? (
+                  `账号锁定 · ${fmtLock(lockLeft)} 后可重试`
+                ) : submitting ? (
+                  '正在校验身份…'
+                ) : (
+                  <>
+                    进入门店作业台 <Icon name="i-arrow" />
+                  </>
+                )}
               </button>
 
               <div className="login-demo">
@@ -251,6 +286,12 @@ export default function LoginPage() {
             </form>
           ) : (
             <form className="login-form" onSubmit={submitActivate} noValidate>
+              {IS_API_MODE ? (
+                <div className="notice soft">
+                  <Icon name="i-info" />
+                  <span>本期不开放自助激活：请由门店管理员在后台开通账号，收到初始口令后直接登录（见接口规范 §9.2 D7）。</span>
+                </div>
+              ) : null}
               <div className="login-row">
                 <label className="login-field">
                   <span className="login-label">工号</span>
