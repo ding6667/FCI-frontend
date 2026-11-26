@@ -9,7 +9,7 @@
 | --- | --- | --- |
 | 框架 | React 19 + TypeScript 7 | 函数组件 + Hooks |
 | 构建 | Vite 8 | 开发秒级热更，按需分包 |
-| UI 组件库 | Ant Design 6 | 全局 `ConfigProvider` 对齐门店台设计令牌（主色 `#2F6B49`、米色底 `#FCF8EE`），中文语言包 |
+| UI 组件库 | Ant Design 6 | 全局 `ConfigProvider` 对齐门店台设计令牌（主色 `#2F6B49`、卡片白 `#FFFFFF`、页面底 `#EDEFEB`），中文语言包 |
 | 状态管理 | Zustand 5 | 单 store + 领域切面，避免 Redux 样板代码 |
 | 路由 | React Router 7 | `/app/*` 受保护路由，未登录跳 `/login` |
 | 样式 | 原生 CSS（原型迁移）+ Tailwind 4 | Tailwind 作为工具层备用，像素还原以 `store-pos.css` 为准 |
@@ -79,6 +79,7 @@ src/
 - `src/styles/store-pos.css` 由原型 `store-pos.html` 的 `<style>` 整段迁移而来，**类名不改**，因此新增页面请复用原型类名（`page-head`、`filter-chip`、`data-table`、`tag`、`modal-*` 等），避免样式分叉。
 - 图标使用原型内联 SVG 雪碧图（`IconSprite` + `<Icon name="i-xxx" />`），不引入图标字体。
 - 交互态（hover / active / 禁用 / 离线）与文案均按原型保留，Mock 数据集中在 `src/data/mock.ts`，便于替换为接口数据。
+- 底色与原型不同：原型用沙黄纸感（`--paper #EFE7D7` / `--surface #FCF8EE`），本项目改为**灰白页面 + 纯白卡片**（`--paper #EDEFEB` / `--surface #FFFFFF` / `--surface-2 #F5F7F4`），靠 1px 冷灰描边与柔和投影形成层次，其余设计令牌（森林绿、赭橙、衬线标题、等宽数字）不变。
 
 ## 与后端对接（员工系统 SYS · employee-api.md v1.0）
 

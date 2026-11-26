@@ -27,5 +27,5 @@ const TINTS: Record<string, string> = {
 }
 
 export function tint(icon: string): string {
-  return TINTS[icon] ?? '#F7F1E3'
+  return TINTS[icon] ?? '#F1F3F0'
 }

@@ -190,7 +190,7 @@
   cursor: pointer;
 }
 .perm-item:hover {
-  background: var(--cream);
+  background: var(--surface-2);
 }
 .perm-item input {
   width: 13px;

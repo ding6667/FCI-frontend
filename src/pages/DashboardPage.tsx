@@ -209,7 +209,7 @@ export default function DashboardPage() {
                   <stop offset="1" stopColor="#2F6B49" stopOpacity="0" />
                 </linearGradient>
               </defs>
-              <g stroke="#D9CFBC" strokeWidth="1">
+              <g stroke="#E3E6E1" strokeWidth="1">
                 <line x1="48" y1="18" x2="780" y2="18" />
                 <line x1="48" y1="70" x2="780" y2="70" />
                 <line x1="48" y1="122" x2="780" y2="122" />
@@ -241,11 +241,11 @@ export default function DashboardPage() {
                 strokeLinejoin="round"
                 strokeLinecap="round"
               />
-              <circle cx="780" cy="82" r="4" fill="#2F6B49" stroke="#FCF8EE" strokeWidth="2" />
+              <circle cx="780" cy="82" r="4" fill="#2F6B49" stroke="#FFFFFF" strokeWidth="2" />
               <path
                 d="M48 208 L120 198 L192 204 L264 180 L336 188 L408 160 L480 168 L552 142 L624 152 L696 124 L780 132"
                 fill="none"
-                stroke="#BCB09A"
+                stroke="#CBD0CA"
                 strokeWidth="1.4"
                 strokeDasharray="4 5"
               />
