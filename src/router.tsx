@@ -17,6 +17,13 @@ const OrdersPage = lazy(() => import('@/pages/OrdersPage'))
 const InventoryPage = lazy(() => import('@/pages/InventoryPage'))
 const MembersPage = lazy(() => import('@/pages/MembersPage'))
 
+/* 管理台（SYS 员工域）同样按页分包，只有拥有对应权限点的员工才会加载 */
+const EmployeesPage = lazy(() => import('@/pages/admin/EmployeesPage'))
+const RolesPage = lazy(() => import('@/pages/admin/RolesPage'))
+const PermissionsPage = lazy(() => import('@/pages/admin/PermissionsPage'))
+const ApprovalsPage = lazy(() => import('@/pages/admin/ApprovalsPage'))
+const LogsPage = lazy(() => import('@/pages/admin/LogsPage'))
+
 function RequireAuth({ children }: { children: ReactNode }) {
   const loggedIn = useAppStore((s) => s.loggedIn)
   if (!loggedIn) return <Navigate to="/login" replace />
@@ -42,6 +49,11 @@ export default function AppRoutes() {
         <Route path="orders" element={<OrdersPage />} />
         <Route path="inventory" element={<InventoryPage />} />
         <Route path="members" element={<MembersPage />} />
+        <Route path="admin/approvals" element={<ApprovalsPage />} />
+        <Route path="admin/employees" element={<EmployeesPage />} />
+        <Route path="admin/roles" element={<RolesPage />} />
+        <Route path="admin/permissions" element={<PermissionsPage />} />
+        <Route path="admin/logs" element={<LogsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
     </Routes>

@@ -4,6 +4,7 @@ import { Icon } from '@/components/Icon'
 import ModalHost from '@/components/ModalHost'
 import { useNow } from '@/hooks/useNow'
 import { nowHM } from '@/lib/format'
+import { useAdminStore } from '@/store/useAdminStore'
 import { useAppStore } from '@/store/useAppStore'
 
 interface NavItem {
@@ -23,6 +24,15 @@ const NAV: NavItem[] = [
   { path: '/app/members', label: '会员', icon: 'i-members' },
 ]
 
+/** 管理台入口：按权限点显隐，普通收银员看不到这一组 */
+const ADMIN_NAV: NavItem[] = [
+  { path: '/app/admin/approvals', label: '审批中心', icon: 'i-shield', perm: 'sys:approval:list' },
+  { path: '/app/admin/employees', label: '员工', icon: 'i-user', perm: 'sys:employee:list' },
+  { path: '/app/admin/roles', label: '角色授权', icon: 'i-tag', perm: 'sys:role:list' },
+  { path: '/app/admin/permissions', label: '权限点', icon: 'i-box', perm: 'sys:perm:list' },
+  { path: '/app/admin/logs', label: '操作日志', icon: 'i-receipt', perm: 'sys:log:list' },
+]
+
 export const PAGE_TITLE: Record<string, string> = {
   '/app/dashboard': '工作台',
   '/app/pos': '收银台',
@@ -30,6 +40,11 @@ export const PAGE_TITLE: Record<string, string> = {
   '/app/orders': '订单履约',
   '/app/inventory': '库存批次',
   '/app/members': '会员',
+  '/app/admin/approvals': '审批中心',
+  '/app/admin/employees': '员工管理',
+  '/app/admin/roles': '角色授权',
+  '/app/admin/permissions': '权限点',
+  '/app/admin/logs': '操作日志',
 }
 
 /** 路由懒加载的占位：只占内容区，侧栏与顶栏保持可操作 */
@@ -55,6 +70,7 @@ export default function StoreLayout() {
   const toggleOffline = useAppStore((s) => s.toggleOffline)
   const openModal = useAppStore((s) => s.openModal)
   const can = useAppStore((s) => s.can)
+  const approvals = useAdminStore((s) => s.approvals)
 
   const pendingExpiry = batches.filter((b) => b.status === '待处置').length
   const pendingOrders = orders.filter((o) => o.status === '待拣货' || o.status === '待打包').length
@@ -62,8 +78,39 @@ export default function StoreLayout() {
   const badgeOf = (path: string): number | null => {
     if (path === '/app/expiry') return pendingExpiry
     if (path === '/app/orders') return pendingOrders
+    if (path === '/app/admin/approvals') return approvals.filter((a) => a.approveResult === 0).length
     return null
   }
+
+  const renderItem = (item: NavItem) => {
+    const badge = badgeOf(item.path)
+    return (
+      <NavLink
+        key={item.path}
+        to={item.path}
+        className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
+      >
+        <Icon name={item.icon} />
+        <span className="rail-name">{item.label}</span>
+        {item.path === '/app/pos' ? (
+          <span
+            className="rail-badge"
+            style={{
+              background: 'rgba(217,229,193,.12)',
+              borderColor: 'rgba(217,229,193,.25)',
+              color: 'rgba(217,229,193,.7)',
+            }}
+          >
+            A01
+          </span>
+        ) : badge !== null ? (
+          <span className="rail-badge">{badge}</span>
+        ) : null}
+      </NavLink>
+    )
+  }
+
+  const adminItems = ADMIN_NAV.filter((item) => !item.perm || can(item.perm))
 
   return (
     <div className="app">
@@ -80,33 +127,13 @@ export default function StoreLayout() {
 
         <nav className="rail-nav" aria-label="门店台导航">
           <p className="rail-label">STORE OPERATIONS</p>
-          {NAV.filter((item) => !item.perm || can(item.perm)).map((item) => {
-            const badge = badgeOf(item.path)
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) => `rail-item ${isActive ? 'active' : ''}`}
-              >
-                <Icon name={item.icon} />
-                <span className="rail-name">{item.label}</span>
-                {item.path === '/app/pos' ? (
-                  <span
-                    className="rail-badge"
-                    style={{
-                      background: 'rgba(217,229,193,.12)',
-                      borderColor: 'rgba(217,229,193,.25)',
-                      color: 'rgba(217,229,193,.7)',
-                    }}
-                  >
-                    A01
-                  </span>
-                ) : badge !== null ? (
-                  <span className="rail-badge">{badge}</span>
-                ) : null}
-              </NavLink>
-            )
-          })}
+          {NAV.filter((item) => !item.perm || can(item.perm)).map(renderItem)}
+          {adminItems.length ? (
+            <>
+              <p className="rail-group-label">SYSTEM ADMIN</p>
+              {adminItems.map(renderItem)}
+            </>
+          ) : null}
         </nav>
 
         <div className="rail-foot">
@@ -135,7 +162,7 @@ export default function StoreLayout() {
       <div className="shell">
         <header className="topbar">
           <div className="crumbs">
-            <span>门店作业</span>
+            <span>{pathname.startsWith('/app/admin') ? '系统管理' : '门店作业'}</span>
             <span className="sep">/</span>
             <b>{PAGE_TITLE[pathname] ?? '工作台'}</b>
             <span className="crumb-store">

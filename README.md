@@ -39,21 +39,30 @@ npm run preview
 | `/app/orders` | 订单履约 | 待拣货 / 待打包 / 配送中 / 已完成四列看板，拣货、交接出库、确认送达、异常上报 |
 | `/app/inventory` | 库存批次 | 在库 / 锁定 / 可用量 / 安全线 / 渠道可售矩阵、补货申请、批次追溯 |
 | `/app/members` | 会员 | 会员检索、等级与积分、券包、近 30 天消费、发券、注册 |
+| `/app/admin/approvals` | 审批中心 | 待审 / 已通过 / 已驳回分段，按业务类型筛选与单号搜索，通过 / 驳回裁决（驳回必填理由），业务快照与审批时间线 |
+| `/app/admin/employees` | 员工管理 | 档案检索（状态 / 岗位 / 关键字）、入职、编辑、重置密码、冻结解冻、离职停用、调整审批额度、分配角色 |
+| `/app/admin/roles` | 角色授权 | 角色列表、新建 / 编辑 / 删除（内置角色禁删）、勾选权限树授权 |
+| `/app/admin/permissions` | 权限点 | 19 个权限点按业务域只读总览，标注权限码、类型与接口路径 |
+| `/app/admin/logs` | 操作日志 | 按模块 / 动作筛选，变更前后 JSON 对比，只读不可删 |
+
+管理台五个入口在侧栏 `SYSTEM ADMIN` 分组下，按权限点（`sys:employee:list`、`sys:role:list`、`sys:perm:list`、`sys:approval:list`、`sys:log:list`）显隐。
 
 ## 目录结构
 
 ```
 src/
 ├─ api/            # axios 实例与 SYS 域接口层（auth / approval / sys / token / types）
-├─ components/     # Icon、IconSprite、ModalShell、ModalHost、Feedback(Toast/CountUp)
-├─ data/mock.ts    # 演示数据：商品、批次、订单、库存、会员、券、活动
-├─ features/       # 按业务域拆分的弹窗与局部组件（pos / expiry / orders / inventory / members / shift）
+├─ components/     # Icon、IconSprite、ModalShell（portal 挂 body）、ModalHost、Feedback(Toast/CountUp)
+├─ data/
+│  ├─ mock.ts      # 作业台演示数据：商品、批次、订单、库存、会员、券、活动
+│  └─ adminMock.ts # 管理台演示数据：员工、角色、权限树、审批单、操作日志
+├─ features/       # 按业务域拆分的弹窗与局部组件（pos / expiry / orders / inventory / members / shift / admin）
 ├─ hooks/          # useNow 等通用 hooks
-├─ layouts/        # StoreLayout：侧边导航 + 顶栏 + 离线横幅
-├─ lib/            # catalog（图标/色板）、format（金额/数量）、pricing（会员价、券、合计）
-├─ pages/          # 六大业务页面 + 登录页
-├─ store/          # useAppStore（Zustand）：auth / ui / pos / expiry / orders / inventory / members
-├─ styles/         # store-pos.css：原型样式原样迁移，类名与原型保持一致
+├─ layouts/        # StoreLayout：侧边导航（含 SYSTEM ADMIN 分组）+ 顶栏 + 离线横幅
+├─ lib/            # catalog（图标/色板）、format（金额/数量）、pricing（会员价、券、合计）、approvalFlow（审批流）
+├─ pages/          # 六大业务页面 + 登录页；pages/admin/ 下为五个管理台页面
+├─ store/          # useAppStore（作业台）+ useAdminStore（管理台），均为 Zustand
+├─ styles/         # store-pos.css（原型迁移，类名不改）+ admin.css（管理台专用形状）
 └─ types/          # 领域模型类型定义
 ```
 
@@ -85,7 +94,7 @@ cp .env.example .env
 | --- | --- | --- |
 | 登录 / 刷新 / 注销 / 当前身份 / 权限查询 | `src/api/auth.ts` | #1 `POST /oauth2/token`、#2 `GET /auth/me`、#3 `GET /employees/{empId}:permissions`、`DELETE /token/logout` |
 | 审批提交 / 裁决 / 校验 / 列表 / 待办数 | `src/api/approval.ts` | #19 ~ #22 |
-| 员工、角色、权限树、审计 | `src/api/sys.ts` | #4 ~ #18、#23（供后续管理页复用，暂无页面） |
+| 员工、角色、权限树、审计 | `src/api/sys.ts` | #4 ~ #18、#23 |
 | 统一请求层 | `src/api/http.ts` | 令牌注入、`Number(code)===0` 判定、401 单次刷新重放、错误码归一 |
 | 令牌存储 | `src/api/token.ts` | **sessionStorage**（门店共用终端禁止 localStorage，规范 §1.3） |
 
@@ -111,18 +120,44 @@ cp .env.example .env
 - 单号回填到处置记录（`AP + yyyyMMdd + 流水`），演示模式下本地生成，真实模式取 #19 返回值。
 - `bizType + bizId` 幂等，失败可放心重试；`bizId` 目前由批次号派生（`deriveBizId`），拿到 STK 域批次主键后替换。
 
+### 管理台（SYS 后台 · 员工 / 角色 / 权限 / 审批 / 日志）
+
+五个页面共用 `src/store/useAdminStore.ts`。与作业台拆开的原因：管理台数据量大、筛选分页频繁，
+放进 `useAppStore` 会让收银台每次改 UI 都跟着重算；管理台是「临时进入」的二级场景，独立 store 便于按需卸载。
+
+双模式行为一致，区别只在数据来源：
+
+| 模式 | 写操作 | 读 |
+| --- | --- | --- |
+| `mock` | 直接改内存数组，并补一条操作日志，断网也能演示完整闭环 | `src/data/adminMock.ts` |
+| `api` | 调 `sys.ts` / `approval.ts` 对应接口 | 成功后 `refresh()` 重新拉取，以服务端为准 |
+
+- 提交审批（S4 折价、S6 报损）后会调用 `recordApproval` 把单据插进审批中心，不用刷新就能在待审里看到；
+- 演示模式下每个写操作都会追加一条日志（`EMP_UPDATE`、`QUOTA_CHANGE`、`ROLE_PERM_ASSIGN`、`APPROVAL_DECIDE`…），
+  日志页能立刻看到「变更前 / 变更后」的差异，真实模式由服务端写入、前端不重复上报。
+
+### 弹窗必须 portal 到 body
+
+`.page` 的入场动画是 `pageIn .25s ease-out both`。动画播完后 Chrome 仍把计算值保留为单位矩阵 `transform`，
+而**任何非 `none` 的 transform 都会让后代 `position:fixed` 改为相对该页面区块定位**——弹窗比区块高时上下会被裁掉
+（本次在权限树弹窗上暴露，实际收银台的收款弹窗也受影响）。
+
+`src/components/ModalShell.tsx` 已改为 `createPortal(..., document.body)`，弹窗层恢复相对视口定位，
+Esc 关闭与背景点击关闭保持不变。
+
 ### 打包与分包
 
-六个业务页走 `React.lazy` 路由级分包，首屏仅加载登录页与当前页；切换页面时内容区显示同色系 loading
+六个业务页与五个管理台页面都走 `React.lazy` 路由级分包，首屏仅加载登录页与当前页；切换页面时内容区显示同色系 loading
 （`StoreLayout` 内 `Suspense`），侧栏与顶栏保持可操作。
 
 `vite.config.ts` 再用 rolldown 的 `codeSplitting.groups`（**不是** rollup 的 `manualChunks`，v8 已不支持对象写法）
-把 `react` / `antd` 拆成稳定 vendor chunk。当前产物：`antd` 317 kB、`index` 172 kB、`react` 39 kB，
-六页各 4–15 kB，不再触发 500 kB 提示，且改动业务代码时用户无需重下 antd。
+把 `react` / `antd` 拆成稳定 vendor chunk。当前产物：`antd` 317 kB、`index` 114 kB、`react` 39 kB，
+各业务页 4–15 kB、管理台 4–8 kB，不再触发 500 kB 提示，且改动业务代码时用户无需重下 antd。
 
 ### 尚未接入（等其他域接口）
 
 - 收银台的商品/会员/订单/支付（ART / MEM / OMS 域）
 - 临期批次、库存、补货（STK / PUR 域）——审批链路已通，等真实批次主键与成本线接口替换 `deriveBizId`
 - 报表 KPI 与销售曲线（报表域）
+- 管理台写接口的**组织架构/门店树**（当前门店为演示常量，等 STK/门店主数据接口）
 

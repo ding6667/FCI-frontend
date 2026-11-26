@@ -9,6 +9,7 @@ import { deriveBizId, submitBizApproval } from '@/lib/approvalFlow'
 import { calcTotals, lineBase, lineNet, productById } from '@/lib/pricing'
 import { levelOf } from '@/lib/pricing'
 import { maskPhone, nowHM, pad4, round2 } from '@/lib/format'
+import { useAdminStore } from '@/store/useAdminStore'
 import type {
   Batch,
   BatchStatus,
@@ -25,6 +26,46 @@ import type {
 
 const EMPLOYEE = { id: '1', name: '王芳', code: '1001', role: '值班店长', initial: '芳' }
 const STORE_NAME = '望江路店 · A01'
+
+/**
+ * S4 折价 / S6 报损提交后，把审批单同步进管理台，
+ * 否则刚提交的单子要刷新才在「审批中心」出现，演示时会显得断链。
+ * 真实模式下管理台会以服务端列表为准（refresh 覆盖），这里只做即时插入。
+ */
+function pushAdminApproval(input: {
+  approvalNo: string
+  bizType: 'PRICE' | 'WASTE'
+  bizId: string
+  bizNo: string
+  applyEmpId: string
+  applyEmpName: string
+  applyAmount: number
+  passed: boolean
+  auto: boolean
+  snapshot: Record<string, unknown>
+}) {
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const createTime = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  useAdminStore.getState().recordApproval({
+    id: input.approvalNo,
+    approvalNo: input.approvalNo,
+    bizType: input.bizType,
+    bizId: input.bizId,
+    bizNo: input.bizNo,
+    applyEmpId: input.applyEmpId,
+    applyEmpName: input.applyEmpName,
+    applyAmount: input.applyAmount,
+    needLevel: input.auto ? 1 : 2,
+    approverEmpId: null,
+    approverEmpName: null,
+    approveResult: input.passed ? 1 : 0,
+    approveTime: input.passed ? createTime : null,
+    approveRemark: input.auto ? '额度内自动通过' : null,
+    snapshotJson: JSON.stringify(input.snapshot),
+    createTime,
+  })
+}
 
 export interface LoginResult {
   ok: boolean
@@ -536,26 +577,40 @@ const storeCreator: StateCreator<AppStore> = (set, get) => ({
 
     // 低于成本线：提交 PRICE 审批；让利额在额度内会自动通过（§4.5 #19）
     const amount = round2((b.price - newPrice) * b.stock)
+    const bizId = deriveBizId(b.batch)
+    const snapshot = {
+      batchId: b.id,
+      batchNo: b.batch,
+      name: b.name,
+      oldPrice: b.price,
+      newPrice,
+      rate,
+      stock: b.stock,
+      unit: b.unit,
+      costLine: b.cost,
+      discountAmount: amount,
+    }
     try {
       const outcome = await submitBizApproval({
         bizType: 'PRICE',
-        bizId: deriveBizId(b.batch),
+        bizId,
         bizNo: b.batch,
         applyEmpId: get().employee.id,
         applyAmount: amount,
         limit: get().approvalLimit,
-        snapshot: {
-          batchId: b.id,
-          batchNo: b.batch,
-          name: b.name,
-          oldPrice: b.price,
-          newPrice,
-          rate,
-          stock: b.stock,
-          unit: b.unit,
-          costLine: b.cost,
-          discountAmount: amount,
-        },
+        snapshot,
+      })
+      pushAdminApproval({
+        approvalNo: outcome.approvalNo,
+        bizType: 'PRICE',
+        bizId,
+        bizNo: b.batch,
+        applyEmpId: get().employee.id,
+        applyEmpName: get().employee.name,
+        applyAmount: amount,
+        passed: outcome.passed,
+        auto: outcome.auto,
+        snapshot,
       })
       const status: BatchStatus = outcome.passed ? '已折价' : '审批中'
       set((s) => ({
@@ -592,29 +647,43 @@ const storeCreator: StateCreator<AppStore> = (set, get) => ({
 
     // 报损：损耗金额走 WASTE 审批，通过后才落损耗台账
     const amount = round2(b.cost * b.stock)
+    const bizId = deriveBizId(b.batch)
+    const reason = extra?.reason ?? '品质下降 · 不可售'
+    const snapshot = {
+      batchId: b.id,
+      batchNo: b.batch,
+      name: b.name,
+      qty: b.stock,
+      unit: b.unit,
+      cost: b.cost,
+      lossAmount: amount,
+      reason,
+      remark: extra?.remark ?? '',
+    }
     try {
       const outcome = await submitBizApproval({
         bizType: 'WASTE',
-        bizId: deriveBizId(b.batch),
+        bizId,
         bizNo: b.batch,
         applyEmpId: get().employee.id,
         applyAmount: amount,
         limit: get().approvalLimit,
-        snapshot: {
-          batchId: b.id,
-          batchNo: b.batch,
-          name: b.name,
-          qty: b.stock,
-          unit: b.unit,
-          cost: b.cost,
-          lossAmount: amount,
-          reason: extra?.reason ?? '品质下降 · 不可售',
-          remark: extra?.remark ?? '',
-        },
+        snapshot,
+      })
+      pushAdminApproval({
+        approvalNo: outcome.approvalNo,
+        bizType: 'WASTE',
+        bizId,
+        bizNo: b.batch,
+        applyEmpId: get().employee.id,
+        applyEmpName: get().employee.name,
+        applyAmount: amount,
+        passed: outcome.passed,
+        auto: outcome.auto,
+        snapshot,
       })
       const status: BatchStatus = outcome.passed ? '已报损' : '审批中'
       set((s) => ({ batches: s.batches.map((x) => (x.id === id ? { ...x, status } : x)) }))
-      const reason = extra?.reason ?? '品质下降 · 不可售'
       get().addExpiryLog(
         outcome.passed
           ? `${b.name} ${b.batch} 已报损 ${b.stock} ${b.unit}（${reason}），损耗 ¥${amount.toFixed(2)}（${outcome.approvalNo}）`

@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import './styles/store-pos.css';
+@import './styles/admin.css';
 
 /*
  * 门店台设计系统以 store-pos.css 为准：它没有包在 @layer 里，
