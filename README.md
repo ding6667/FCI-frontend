@@ -44,7 +44,7 @@ npm run preview
 
 ```
 src/
-├─ api/            # axios 实例与接口层（待接入接口方案）
+├─ api/            # axios 实例与 SYS 域接口层（auth / approval / sys / token / types）
 ├─ components/     # Icon、IconSprite、ModalShell、ModalHost、Feedback(Toast/CountUp)
 ├─ data/mock.ts    # 演示数据：商品、批次、订单、库存、会员、券、活动
 ├─ features/       # 按业务域拆分的弹窗与局部组件（pos / expiry / orders / inventory / members / shift）
