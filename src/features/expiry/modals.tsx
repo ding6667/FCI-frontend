@@ -9,14 +9,27 @@ import { ModalFoot, ModalHead, ModalShell } from '@/components/ModalShell'
 export function BatchDiscountModal({ id }: { id: string }) {
   const batches = useAppStore((s) => s.batches)
   const applyBatchDiscount = useAppStore((s) => s.applyBatchDiscount)
+  const approvalLimit = useAppStore((s) => s.approvalLimit)
   const closeModal = useAppStore((s) => s.closeModal)
   const [rate, setRate] = useState(0.7)
+  const [busy, setBusy] = useState(false)
 
   const b = batches.find((x) => x.id === id)
   if (!b) return null
 
   const newPrice = round2(b.price * rate)
   const below = newPrice < b.cost
+  const discountAmount = round2((b.price - newPrice) * b.stock)
+  const autoPass = discountAmount <= approvalLimit
+
+  const confirm = async () => {
+    setBusy(true)
+    try {
+      await applyBatchDiscount(id, rate)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <ModalShell onClose={closeModal} width="min(480px,100%)">
@@ -59,9 +72,13 @@ export function BatchDiscountModal({ id }: { id: string }) {
             <span>成本保护线</span>
             <b>¥{money(b.cost)}</b>
           </div>
-          <div className="money-row total">
-            <span>预估让利 / {b.unit}</span>
+          <div className="money-row">
+            <span>单件让利 / {b.unit}</span>
             <b>¥{money(b.price - newPrice)}</b>
+          </div>
+          <div className="money-row total">
+            <span>让利合计 · 在库 {b.stock} {b.unit}</span>
+            <b>¥{money(discountAmount)}</b>
           </div>
         </div>
 
@@ -69,7 +86,10 @@ export function BatchDiscountModal({ id }: { id: string }) {
           <div className="notice amber">
             <Icon name="i-warn" />
             <span>
-              折后价 ¥{money(newPrice)} 低于成本保护线 ¥{money(b.cost)}，将提交店长审批后生效（BR-14）。
+              折后价 ¥{money(newPrice)} 低于成本保护线 ¥{money(b.cost)}
+              {autoPass
+                ? `，让利 ¥${money(discountAmount)} 在你的审批额度 ¥${money(approvalLimit)} 内，提交后自动通过并留痕（BR-14）。`
+                : `，让利 ¥${money(discountAmount)} 超出你的审批额度 ¥${money(approvalLimit)}，需店长审批后生效（BR-14）。`}
             </span>
           </div>
         ) : (
@@ -86,15 +106,16 @@ export function BatchDiscountModal({ id }: { id: string }) {
           </span>
         </div>
       </div>
-      <ModalFoot note="动作将写入处置记录">
-        <button className="btn btn-ghost" onClick={closeModal}>
+      <ModalFoot note={below && !autoPass ? '提交后进入审批中心，通过前不改变售价' : '动作将写入处置记录'}>
+        <button className="btn btn-ghost" onClick={closeModal} disabled={busy}>
           取消
         </button>
         <button
           className={below ? 'btn btn-orange' : 'btn btn-primary'}
-          onClick={() => applyBatchDiscount(id, rate)}
+          onClick={confirm}
+          disabled={busy}
         >
-          {below ? '提交审批' : `确认 ${rate === 0.7 ? '7' : '5'} 折`}
+          {busy ? '提交中…' : below ? '提交审批' : `确认 ${rate === 0.7 ? '7' : '5'} 折`}
         </button>
       </ModalFoot>
     </ModalShell>
@@ -107,9 +128,19 @@ export function BatchCutModal({ id }: { id: string }) {
   const batches = useAppStore((s) => s.batches)
   const applyBatchDisposition = useAppStore((s) => s.applyBatchDisposition)
   const closeModal = useAppStore((s) => s.closeModal)
+  const [busy, setBusy] = useState(false)
 
   const b = batches.find((x) => x.id === id)
   if (!b) return null
+
+  const confirm = async () => {
+    setBusy(true)
+    try {
+      await applyBatchDisposition(id, 'cut')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <ModalShell onClose={closeModal} width="min(480px,100%)">
@@ -144,11 +175,11 @@ export function BatchCutModal({ id }: { id: string }) {
         </div>
       </div>
       <ModalFoot note="成品需重新登记批次">
-        <button className="btn btn-ghost" onClick={closeModal}>
+        <button className="btn btn-ghost" onClick={closeModal} disabled={busy}>
           取消
         </button>
-        <button className="btn btn-primary" onClick={() => applyBatchDisposition(id, 'cut')}>
-          确认转果切
+        <button className="btn btn-primary" onClick={confirm} disabled={busy}>
+          {busy ? '处理中…' : '确认转果切'}
         </button>
       </ModalFoot>
     </ModalShell>
@@ -160,11 +191,26 @@ export function BatchCutModal({ id }: { id: string }) {
 export function BatchWasteModal({ id }: { id: string }) {
   const batches = useAppStore((s) => s.batches)
   const applyBatchDisposition = useAppStore((s) => s.applyBatchDisposition)
+  const approvalLimit = useAppStore((s) => s.approvalLimit)
   const closeModal = useAppStore((s) => s.closeModal)
   const [reason, setReason] = useState('品质下降 · 不可售')
+  const [remark, setRemark] = useState('')
+  const [busy, setBusy] = useState(false)
 
   const b = batches.find((x) => x.id === id)
   if (!b) return null
+
+  const loss = round2(b.cost * b.stock)
+  const autoPass = loss <= approvalLimit
+
+  const confirm = async () => {
+    setBusy(true)
+    try {
+      await applyBatchDisposition(id, 'waste', { reason, remark })
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <ModalShell onClose={closeModal} width="min(480px,100%)">
@@ -177,7 +223,12 @@ export function BatchWasteModal({ id }: { id: string }) {
       <div className="modal-body">
         <div className="notice red">
           <Icon name="i-warn" />
-          <span>报损将写入损耗台账并扣减批次库存；需值班店长审批，差异超过授权额度时需上传凭证。</span>
+          <span>
+            报损将写入损耗台账并扣减批次库存；本次损耗 ¥{money(loss)}，
+            {autoPass
+              ? `在你的审批额度 ¥${money(approvalLimit)} 内，提交后自动通过并留痕。`
+              : `超出你的审批额度 ¥${money(approvalLimit)}，需值班店长审批并上传凭证。`}
+          </span>
         </div>
         <label className="field-label" style={{ marginTop: 10, display: 'block' }}>
           报损原因
@@ -191,14 +242,19 @@ export function BatchWasteModal({ id }: { id: string }) {
         <label className="field-label" style={{ marginTop: 9, display: 'block' }}>
           备注
         </label>
-        <textarea className="field" placeholder="选填：处置说明与凭证编号" />
+        <textarea
+          className="field"
+          placeholder="选填：处置说明与凭证编号"
+          value={remark}
+          onChange={(e) => setRemark(e.target.value)}
+        />
       </div>
-      <ModalFoot note="审批人：王芳（值班店长）">
-        <button className="btn btn-ghost" onClick={closeModal}>
+      <ModalFoot note={autoPass ? '额度内自动通过，单号可查' : '审批人：值班店长'}>
+        <button className="btn btn-ghost" onClick={closeModal} disabled={busy}>
           取消
         </button>
-        <button className="btn btn-danger" onClick={() => applyBatchDisposition(id, 'waste')}>
-          确认报损
+        <button className="btn btn-danger" onClick={confirm} disabled={busy}>
+          {busy ? '提交中…' : '确认报损'}
         </button>
       </ModalFoot>
     </ModalShell>

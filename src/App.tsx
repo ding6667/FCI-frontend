@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { App as AntdApp, ConfigProvider } from 'antd'
+import { ConfigProvider } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
@@ -37,6 +37,11 @@ const theme = {
   },
 }
 
+/**
+ * 只挂 ConfigProvider：门店台的 toast / 弹窗都是原型自绘，未使用 antd 的
+ * message / notification / Modal 静态方法，因此不引入 <App> 上下文，减小首包。
+ * 后续若要用 antd 静态方法，在外层补回 <AntdApp> 即可。
+ */
 export default function App() {
   useEffect(() => {
     document.documentElement.lang = 'zh-CN'
@@ -54,13 +59,11 @@ export default function App() {
 
   return (
     <ConfigProvider locale={zhCN} theme={theme}>
-      <AntdApp>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-        <Toast />
-        <IconSprite />
-      </AntdApp>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+      <Toast />
+      <IconSprite />
     </ConfigProvider>
   )
 }

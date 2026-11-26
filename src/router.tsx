@@ -1,14 +1,21 @@
+import { lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import StoreLayout from '@/layouts/StoreLayout'
 import LoginPage from '@/pages/LoginPage'
-import DashboardPage from '@/pages/DashboardPage'
-import PosPage from '@/pages/PosPage'
-import ExpiryPage from '@/pages/ExpiryPage'
-import OrdersPage from '@/pages/OrdersPage'
-import InventoryPage from '@/pages/InventoryPage'
-import MembersPage from '@/pages/MembersPage'
 import { useAppStore } from '@/store/useAppStore'
+
+/**
+ * 业务页按路由懒加载：
+ * 登录页首屏必须同步加载（否则白屏绕一圈），其余六页拆成独立 chunk，
+ * 首屏只加载当前页，避免把 antd 全量算进首包。
+ */
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'))
+const PosPage = lazy(() => import('@/pages/PosPage'))
+const ExpiryPage = lazy(() => import('@/pages/ExpiryPage'))
+const OrdersPage = lazy(() => import('@/pages/OrdersPage'))
+const InventoryPage = lazy(() => import('@/pages/InventoryPage'))
+const MembersPage = lazy(() => import('@/pages/MembersPage'))
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const loggedIn = useAppStore((s) => s.loggedIn)

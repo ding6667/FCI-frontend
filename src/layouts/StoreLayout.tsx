@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Icon } from '@/components/Icon'
 import ModalHost from '@/components/ModalHost'
@@ -29,6 +30,16 @@ export const PAGE_TITLE: Record<string, string> = {
   '/app/orders': '订单履约',
   '/app/inventory': '库存批次',
   '/app/members': '会员',
+}
+
+/** 路由懒加载的占位：只占内容区，侧栏与顶栏保持可操作 */
+function PageLoading() {
+  return (
+    <div className="route-loading" role="status" aria-live="polite">
+      <span className="route-spinner" aria-hidden="true" />
+      <span>正在加载作业台…</span>
+    </div>
+  )
 }
 
 export default function StoreLayout() {
@@ -173,7 +184,9 @@ export default function StoreLayout() {
             </div>
           ) : null}
 
-          <Outlet />
+          <Suspense fallback={<PageLoading />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
 

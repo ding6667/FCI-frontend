@@ -5,6 +5,7 @@ import { IS_API_MODE } from '@/api/env'
 import { toApiError } from '@/api/http'
 import { clearTokens, hasSession } from '@/api/token'
 import { BATCHES, INVENTORY, MEMBERS, ORDERS } from '@/data/mock'
+import { deriveBizId, submitBizApproval } from '@/lib/approvalFlow'
 import { calcTotals, lineBase, lineNet, productById } from '@/lib/pricing'
 import { levelOf } from '@/lib/pricing'
 import { maskPhone, nowHM, pad4, round2 } from '@/lib/format'
@@ -22,7 +23,7 @@ import type {
   TicketLine,
 } from '@/types'
 
-const EMPLOYEE = { name: '王芳', code: '1001', role: '值班店长', initial: '芳' }
+const EMPLOYEE = { id: '1', name: '王芳', code: '1001', role: '值班店长', initial: '芳' }
 const STORE_NAME = '望江路店 · A01'
 
 export interface LoginResult {
@@ -140,8 +141,14 @@ interface AppStore {
   setMemberFilter: (f: string) => void
 
   /* ---------------- 领域动作 ---------------- */
-  applyBatchDiscount: (id: string, rate: number) => void
-  applyBatchDisposition: (id: string, type: 'cut' | 'waste') => void
+  /** 折价：高于成本线直接生效，低于成本线提 PRICE 审批（BR-05 / BR-14） */
+  applyBatchDiscount: (id: string, rate: number) => Promise<void>
+  /** 处置：转果切直接生效，报损提 WASTE 审批（BR-07） */
+  applyBatchDisposition: (
+    id: string,
+    type: 'cut' | 'waste',
+    extra?: { reason?: string; remark?: string },
+  ) => Promise<void>
   advanceOrder: (no: string) => void
   confirmPick: (no: string, weights: number[]) => void
   confirmReplenish: (id: string, qty: number) => void
@@ -160,6 +167,7 @@ const PAY_NAME: Record<PayMethod, string> = {
 
 /** 把 /auth/me 的结果映射成登录态切片 */
 function profileState(profile: {
+  empId?: string
   empName: string
   empNo: string
   jobTitle?: string | null
@@ -170,6 +178,7 @@ function profileState(profile: {
   return {
     loggedIn: true,
     employee: {
+      id: String(profile.empId ?? ''),
       name: profile.empName,
       code: profile.empNo,
       role: profile.jobTitle ?? '员工',
@@ -505,36 +514,121 @@ const storeCreator: StateCreator<AppStore> = (set, get) => ({
   setMemberFilter: (f) => set({ memberFilter: f }),
 
   /* ---------------- 领域动作 ---------------- */
-  applyBatchDiscount: (id, rate) => {
+  applyBatchDiscount: async (id, rate) => {
     const b = get().batches.find((x) => x.id === id)
     if (!b) return
     const newPrice = round2(b.price * rate)
     const below = newPrice < b.cost
-    const status: BatchStatus = below ? '审批中' : '已折价'
-    set((s) => ({
-      batches: s.batches.map((x) => (x.id === id ? { ...x, newPrice, appliedRate: rate, status } : x)),
-    }))
-    get().addExpiryLog(
-      `${b.name} ${b.batch} ${below ? '5 折申请已提交审批' : `已按 ${rate * 10} 折折价`}，新价 ¥${newPrice.toFixed(2)}`,
-    )
-    get().closeModal()
-    get().showToast(
-      below ? `折后价低于成本线，已提交店长审批（¥${newPrice.toFixed(2)}）` : `已折价：${b.name} 新价 ¥${newPrice.toFixed(2)}`,
-    )
+    const rateText = `${Math.round(rate * 10)} 折`
+
+    // 高于成本保护线：直接生效，不需要审批
+    if (!below) {
+      set((s) => ({
+        batches: s.batches.map((x) =>
+          x.id === id ? { ...x, newPrice, appliedRate: rate, status: '已折价' as BatchStatus } : x,
+        ),
+      }))
+      get().addExpiryLog(`${b.name} ${b.batch} 已折价（${rateText}），新价 ¥${newPrice.toFixed(2)}`)
+      get().closeModal()
+      get().showToast(`已折价：${b.name} 新价 ¥${newPrice.toFixed(2)}`)
+      return
+    }
+
+    // 低于成本线：提交 PRICE 审批；让利额在额度内会自动通过（§4.5 #19）
+    const amount = round2((b.price - newPrice) * b.stock)
+    try {
+      const outcome = await submitBizApproval({
+        bizType: 'PRICE',
+        bizId: deriveBizId(b.batch),
+        bizNo: b.batch,
+        applyEmpId: get().employee.id,
+        applyAmount: amount,
+        limit: get().approvalLimit,
+        snapshot: {
+          batchId: b.id,
+          batchNo: b.batch,
+          name: b.name,
+          oldPrice: b.price,
+          newPrice,
+          rate,
+          stock: b.stock,
+          unit: b.unit,
+          costLine: b.cost,
+          discountAmount: amount,
+        },
+      })
+      const status: BatchStatus = outcome.passed ? '已折价' : '审批中'
+      set((s) => ({
+        batches: s.batches.map((x) => (x.id === id ? { ...x, newPrice, appliedRate: rate, status } : x)),
+      }))
+      get().addExpiryLog(
+        outcome.passed
+          ? `${b.name} ${b.batch} 折价 ${rateText} 已通过审批（${outcome.approvalNo}），新价 ¥${newPrice.toFixed(2)}`
+          : `${b.name} ${b.batch} 折价 ${rateText} 低于成本线，已提交审批（${outcome.approvalNo}）`,
+      )
+      get().closeModal()
+      get().showToast(
+        outcome.passed
+          ? `审批已通过（${outcome.approvalNo}）：${b.name} 新价 ¥${newPrice.toFixed(2)}`
+          : `已提交店长审批（${outcome.approvalNo}），审核通过后自动生效`,
+      )
+    } catch (error) {
+      // 失败不关弹窗，保留用户输入便于重试（bizType+bizId 幂等，重提安全）
+      get().showToast(toApiError(error).message, true)
+    }
   },
-  applyBatchDisposition: (id, type) => {
+  applyBatchDisposition: async (id, type, extra) => {
     const b = get().batches.find((x) => x.id === id)
     if (!b) return
+
+    // 转果切：加工领料，不涉及金额审批
     if (type === 'cut') {
       set((s) => ({ batches: s.batches.map((x) => (x.id === id ? { ...x, status: '已转果切' } : x)) }))
       get().addExpiryLog(`${b.name} ${b.batch} 已转果切，原料 ${b.stock} ${b.unit} 出库`)
+      get().closeModal()
       get().showToast(`已转果切：${b.name}，加工领料单已生成`)
-    } else {
-      set((s) => ({ batches: s.batches.map((x) => (x.id === id ? { ...x, status: '已报损' } : x)) }))
-      get().addExpiryLog(`${b.name} ${b.batch} 已报损 ${b.stock} ${b.unit}，损耗 ¥${(b.cost * b.stock).toFixed(2)}`)
-      get().showToast(`已报损：${b.name}，损耗台账已更新`)
+      return
     }
-    get().closeModal()
+
+    // 报损：损耗金额走 WASTE 审批，通过后才落损耗台账
+    const amount = round2(b.cost * b.stock)
+    try {
+      const outcome = await submitBizApproval({
+        bizType: 'WASTE',
+        bizId: deriveBizId(b.batch),
+        bizNo: b.batch,
+        applyEmpId: get().employee.id,
+        applyAmount: amount,
+        limit: get().approvalLimit,
+        snapshot: {
+          batchId: b.id,
+          batchNo: b.batch,
+          name: b.name,
+          qty: b.stock,
+          unit: b.unit,
+          cost: b.cost,
+          lossAmount: amount,
+          reason: extra?.reason ?? '品质下降 · 不可售',
+          remark: extra?.remark ?? '',
+        },
+      })
+      const status: BatchStatus = outcome.passed ? '已报损' : '审批中'
+      set((s) => ({ batches: s.batches.map((x) => (x.id === id ? { ...x, status } : x)) }))
+      const reason = extra?.reason ?? '品质下降 · 不可售'
+      get().addExpiryLog(
+        outcome.passed
+          ? `${b.name} ${b.batch} 已报损 ${b.stock} ${b.unit}（${reason}），损耗 ¥${amount.toFixed(2)}（${outcome.approvalNo}）`
+          : `${b.name} ${b.batch} 报损 ¥${amount.toFixed(2)} 已提交审批（${outcome.approvalNo}）`,
+      )
+      get().closeModal()
+      get().showToast(
+        outcome.passed
+          ? `已报损：${b.name}，损耗 ¥${amount.toFixed(2)} · 单号 ${outcome.approvalNo}`
+          : `报损已提交审批（${outcome.approvalNo}），通过后扣减批次库存`,
+      )
+    } catch (error) {
+      get().showToast(toApiError(error).message, true)
+    }
   },
   advanceOrder: (no) => {
     const o = get().orders.find((x) => x.no === no)

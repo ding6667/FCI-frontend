@@ -13,7 +13,7 @@
 | 状态管理 | Zustand 5 | 单 store + 领域切面，避免 Redux 样板代码 |
 | 路由 | React Router 7 | `/app/*` 受保护路由，未登录跳 `/login` |
 | 样式 | 原生 CSS（原型迁移）+ Tailwind 4 | Tailwind 作为工具层备用，像素还原以 `store-pos.css` 为准 |
-| 请求 | Axios | `src/api/http.ts` 统一实例、拦截器、错误提示（当前为占位） |
+| 请求 | Axios | `src/api/http.ts` 统一实例、拦截器、错误提示（已接入员工域） |
 | 时间/金额 | dayjs + 自研格式化 | `src/lib/format.ts` 统一分/元、重量、折扣展示 |
 
 ## 快速开始
@@ -97,10 +97,32 @@ cp .env.example .env
 4. **写接口不传 `operatorEmpId`**，由服务端从登录态取。
 5. **审批快照** `snapshotJson` 必须是 `JSON.stringify(obj)` 后的字符串；`REJECT` 时 `remark` 必填。
 
+### 审批链路（S4 折价 / S6 报损）
+
+金额触发的动作统一走 `src/lib/approvalFlow.ts`，后端只有一套审批能力，前端只有一处封装：
+
+| 动作 | bizType | applyAmount | 结果 |
+| --- | --- | --- | --- |
+| 临期折价（低于成本线） | `PRICE` | 让利合计 =（原价 − 折后价）× 在库 | 额度内自动通过 → 批次 `已折价`；超额度 → `审批中` |
+| 报损 | `WASTE` | 损耗金额 = 成本 × 在库 | 同上，通过后才落损耗台账 |
+| 转果切 / 高于成本线的折价 | — | — | 不走审批，直接生效 |
+
+- 提交前先算 `applyAmount ≤ 当前员工 approvalLimit`，弹窗内直接告诉收银员「会自动通过」还是「需店长审批」。
+- 单号回填到处置记录（`AP + yyyyMMdd + 流水`），演示模式下本地生成，真实模式取 #19 返回值。
+- `bizType + bizId` 幂等，失败可放心重试；`bizId` 目前由批次号派生（`deriveBizId`），拿到 STK 域批次主键后替换。
+
+### 打包与分包
+
+六个业务页走 `React.lazy` 路由级分包，首屏仅加载登录页与当前页；切换页面时内容区显示同色系 loading
+（`StoreLayout` 内 `Suspense`），侧栏与顶栏保持可操作。
+
+`vite.config.ts` 再用 rolldown 的 `codeSplitting.groups`（**不是** rollup 的 `manualChunks`，v8 已不支持对象写法）
+把 `react` / `antd` 拆成稳定 vendor chunk。当前产物：`antd` 317 kB、`index` 172 kB、`react` 39 kB，
+六页各 4–15 kB，不再触发 500 kB 提示，且改动业务代码时用户无需重下 antd。
+
 ### 尚未接入（等其他域接口）
 
 - 收银台的商品/会员/订单/支付（ART / MEM / OMS 域）
-- 临期批次、库存、补货（STK / PUR 域）——S4 的 7 折/5 折、S6 的报损在拿到 STK 域接口后，
-  用 `submitApproval` + `checkApproval` 串起「提交审批 → 待审 → 裁决 → 写入前校验」链路
+- 临期批次、库存、补货（STK / PUR 域）——审批链路已通，等真实批次主键与成本线接口替换 `deriveBizId`
 - 报表 KPI 与销售曲线（报表域）
 
