@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# 本地校验产物（截图 / 参考资料 / 工作区记忆，不入库）
+.shots
+.tmp_ref
+.workbuddy
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="fruit-strawberry" viewBox="0 0 64 64">
+    <path d="M31.5 57.5C20 49 12 38 13.5 28.5 14.5 21 21 17.5 27 21c2 1.3 4 2.2 5 4.2 1-2 3-2.9 5-4.2 6-3.5 12.5 0 13.5 7.5C52 38 44 49 32.5 57.5Z" fill="#E24534" stroke="#24382A" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M24 22c2-7 7-9 8-13 1 4 6 6 8 13-4 2-6 1-8-1-2 2-4 3-8 1Z" fill="#5A9460" stroke="#24382A" stroke-width="2.1" stroke-linejoin="round"/>
+    <path d="M32 9V5" stroke="#24382A" stroke-width="2.2" stroke-linecap="round"/>
+    <g fill="#F5E6B8" stroke="#B93225" stroke-width=".7"><ellipse cx="23" cy="31" rx="1.3" ry="1.9" transform="rotate(-18 23 31)"/><ellipse cx="32" cy="29" rx="1.3" ry="1.9"/><ellipse cx="41" cy="31" rx="1.3" ry="1.9" transform="rotate(18 41 31)"/><ellipse cx="27" cy="40" rx="1.3" ry="1.9" transform="rotate(-12 27 40)"/><ellipse cx="37" cy="40" rx="1.3" ry="1.9" transform="rotate(12 37 40)"/><ellipse cx="32" cy="49" rx="1.2" ry="1.8"/></g>
+  </symbol>
+  <symbol id="fruit-cherry" viewBox="0 0 64 64">
+    <path d="M36 18c-3 10-8 17-13 22M37 18c1 10 2 18 6 23M37 18c7-7 14-6 18-1-4 6-12 7-18 1Z" fill="none" stroke="#426B3A" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M24 40a11 11 0 1 0 0 18 11 11 0 0 0 0-18Z" fill="#C62F3D" stroke="#24382A" stroke-width="2.3"/>
+    <path d="M43 43a10 10 0 1 0 0 16 10 10 0 0 0 0-16Z" fill="#B12634" stroke="#24382A" stroke-width="2.3"/>
+    <path d="M20 44c1.5 1.6 2.8 2.2 4.5 2.6M39 47c1.4 1.4 2.5 2 4 2.3" stroke="#F3B2B3" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="fruit-mango" viewBox="0 0 64 64">
+    <path d="M18 38C14 27 20 16 31 13c10-3 20 3 21 14 1 12-9 24-20 26-6 1-11-5-14-15Z" fill="#F2A63C" stroke="#24382A" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M18 36c4-2 8-7 11-13 3-7 9-10 15-9 3 8-1 18-10 23-6 4-12 3-16-1Z" fill="#E98635" opacity=".75"/>
+    <path d="M30 14c2-5 6-7 9-8-1 4 1 7 4 9-4 3-8 4-13 4-1-2-1-3 0-5Z" fill="#5A9460" stroke="#24382A" stroke-width="2.1" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="fruit-apple" viewBox="0 0 64 64">
+    <path d="M32 22c-4-5-13-5-17 1-5 8 2 23 9 29 4 4 6 4 8 0 7-6 14-21 9-29-4-6-13-6-17-1Z" fill="#D94732" stroke="#24382A" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M32 22c0-7 1-11 3-14" fill="none" stroke="#24382A" stroke-width="2.3" stroke-linecap="round"/>
+    <path d="M34 12c6-5 11-4 14 0-4 5-9 6-14 3Z" fill="#5A9460" stroke="#24382A" stroke-width="2.1" stroke-linejoin="round"/>
+    <path d="M21 29c1 3 2 6 4 8" stroke="#F0A092" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+  </symbol>
+  <symbol id="fruit-orange" viewBox="0 0 64 64">
+    <circle cx="32" cy="35" r="20" fill="#F08A32" stroke="#24382A" stroke-width="2.4"/>
+    <path d="M32 16c0-4 3-8 7-9 1 4-1 8-7 9Z" fill="#5A9460" stroke="#24382A" stroke-width="2"/>
+    <path d="M32 17c-3-3-7-3-10-1 2 4 6 5 10 3" fill="#5A9460" stroke="#24382A" stroke-width="1.8"/>
+    <path d="M19 31c2-4 5-6 8-7" stroke="#FFC57F" stroke-width="2.4" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="fruit-grape" viewBox="0 0 64 64">
+    <path d="M32 18c0-5 2-9 6-12" fill="none" stroke="#426B3A" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M37 11c5-5 11-4 14 1-4 5-10 6-14 3Z" fill="#5A9460" stroke="#24382A" stroke-width="2"/>
+    <g fill="#B6C86F" stroke="#4C6636" stroke-width="1.4"><circle cx="26" cy="25" r="6"/><circle cx="36" cy="24" r="6"/><circle cx="31" cy="32" r="6"/><circle cx="22" cy="36" r="6"/><circle cx="40" cy="35" r="6"/><circle cx="28" cy="44" r="6"/><circle cx="37" cy="45" r="6"/><circle cx="32" cy="52" r="5.4"/></g>
+  </symbol>
+  <symbol id="fruit-watermelon" viewBox="0 0 64 64">
+    <path d="M7 45a25 25 0 0 1 50 0Z" fill="#4E8B4F" stroke="#24382A" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M12 45a20 20 0 0 1 40 0Z" fill="#E9F0CB"/>
+    <path d="M17 45a15 15 0 0 1 30 0Z" fill="#E65B4A" stroke="#24382A" stroke-width="1.4"/>
+    <g fill="#24382A"><ellipse cx="26" cy="39" rx="1" ry="1.8" transform="rotate(-18 26 39)"/><ellipse cx="34" cy="36" rx="1" ry="1.8" transform="rotate(10 34 36)"/><ellipse cx="42" cy="40" rx="1" ry="1.8" transform="rotate(18 42 40)"/></g>
+  </symbol>
+  <symbol id="fruit-blueberry" viewBox="0 0 64 64">
+    <circle cx="24" cy="32" r="12" fill="#53648F" stroke="#24382A" stroke-width="2.2"/>
+    <circle cx="41" cy="36" r="11" fill="#495A83" stroke="#24382A" stroke-width="2.2"/>
+    <circle cx="31" cy="48" r="10" fill="#5C6E9C" stroke="#24382A" stroke-width="2.2"/>
+    <g fill="#8FA1C7" opacity=".65"><circle cx="20" cy="30" r="2"/><circle cx="37" cy="33" r="1.8"/><circle cx="28" cy="45" r="1.6"/></g>
+    <path d="M41 12c4-4 9-4 13-1-4 4-9 5-13 1Z" fill="#5A9460" stroke="#24382A" stroke-width="1.9"/>
+  </symbol>
+  <symbol id="fruit-cut" viewBox="0 0 64 64">
+    <path d="M15 23h34l-4 29c-.4 2.8-2 4-5 4H24c-3 0-4.6-1.2-5-4Z" fill="#F4E7CF" stroke="#24382A" stroke-width="2.3" stroke-linejoin="round"/>
+    <path d="M14 23c0-3 2-5 5-5h26c3 0 5 2 5 5Z" fill="#E0C9A5" stroke="#24382A" stroke-width="2.2"/>
+    <g stroke="#24382A" stroke-width="1.6"><path d="M22 29h9v9h-9Z" fill="#E65B4A"/><path d="M33 27h9v10h-9Z" fill="#F2A63C"/><path d="M23 40h9v8h-9Z" fill="#B6C86F"/><path d="M34 39h8v9h-8Z" fill="#E9E1A2"/></g>
+  </symbol>
+  <symbol id="fruit-durian" viewBox="0 0 64 64">
+    <path d="m32 7 5 7 8-3 1 9 9 2-4 8 6 6-8 5-1 9-9-3-7 6-6-7-9 3-1-9-8-5 5-7-4-8 9-2 1-9 8 3Z" fill="#E5B84B" stroke="#24382A" stroke-width="2.1" stroke-linejoin="round"/>
+    <path d="M22 23c5 2 11 2 18-1M20 37c7 3 16 2 23-2M27 49c4-4 8-7 12-8" fill="none" stroke="#B98E28" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M32 25c-3 2-4 6-2 10 4 1 8-1 9-5 0-4-4-6-7-5Z" fill="#F3D77E" stroke="#B98E28" stroke-width="1.3"/>
+  </symbol>
+  <symbol id="fruit-pear" viewBox="0 0 64 64">
+    <path d="M32 20c-2-7 1-12 5-15" fill="none" stroke="#24382A" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M34 9c5-4 10-3 13 1-4 4-9 4-13 1Z" fill="#5A9460" stroke="#24382A" stroke-width="1.9"/>
+    <path d="M32 19c5 0 8 5 8 10 0 6 9 10 9 19 0 9-8 13-17 13S15 57 15 48c0-9 9-13 9-19 0-5 3-10 8-10Z" fill="#CFD67B" stroke="#24382A" stroke-width="2.3" stroke-linejoin="round"/>
+    <path d="M23 43c2-4 5-6 8-7" stroke="#EFF2B8" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="fruit-tomato" viewBox="0 0 64 64">
+    <circle cx="25" cy="36" r="13" fill="#E65B3C" stroke="#24382A" stroke-width="2.2"/>
+    <circle cx="42" cy="32" r="11" fill="#D94A2F" stroke="#24382A" stroke-width="2.2"/>
+    <circle cx="38" cy="48" r="10" fill="#EF6A47" stroke="#24382A" stroke-width="2.2"/>
+    <g fill="#5A9460" stroke="#24382A" stroke-width="1.4"><path d="m25 23 2 5 5-2-3 5 4 3-6-1-1 5-2-4-5 1 3-4-4-3 6 1Z"/><path d="m42 21 1 4 4-2-2 4 3 2-4-1-1 4-1-3-4 1 2-3-3-2 4 1Z"/></g>
+  </symbol>
+  <symbol id="fruit-gift" viewBox="0 0 64 64">
+    <path d="M10 25h44v29c0 2-1 3-3 3H13c-2 0-3-1-3-3Z" fill="#D8B57B" stroke="#24382A" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M8 18h48v9H8Z" fill="#C79A57" stroke="#24382A" stroke-width="2.2"/>
+    <path d="M30 18h4v39h-4Z" fill="#B64A34" stroke="#24382A" stroke-width="1.6"/>
+    <path d="M32 18c-8 0-14-2-14-6 0-3 3-5 6-4 4 1 7 6 8 10Zm0 0c8 0 14-2 14-6 0-3-3-5-6-4-4 1-7 6-8 10Z" fill="#5A9460" stroke="#24382A" stroke-width="1.9" stroke-linejoin="round"/>
+    <circle cx="22" cy="41" r="4" fill="#EE8A3A" stroke="#24382A" stroke-width="1.4"/><circle cx="42" cy="42" r="4" fill="#D94732" stroke="#24382A" stroke-width="1.4"/>
+  </symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4C12 4 5 8 5 15c0 2.5 1.5 4.5 4 5 6 1 11-5 11-16Z"/><path d="M5 20c2-5 6-9 11-11"/></symbol>
+  <symbol id="i-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-pos" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="12" rx="2"/><path d="M3.5 9h17M8 20h8M12 16v4"/><circle cx="7" cy="12.5" r=".8" fill="currentColor"/><circle cx="10.5" cy="12.5" r=".8" fill="currentColor"/><circle cx="14" cy="12.5" r=".8" fill="currentColor"/></symbol>
+  <symbol id="i-expiry" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 21h12M7 3c0 5 4 6 5 9-1 3-5 4-5 9M17 3c0 5-4 6-5 9 1 3 5 4 5 9"/><path d="M9.5 6h5"/></symbol>
+  <symbol id="i-orders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 12 3l8 4v10l-8 4-8-4Z"/><path d="M4 7l8 4 8-4M12 11v10M8 5l8 4"/></symbol>
+  <symbol id="i-stock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 21 8l-9 5-9-5Z"/><path d="m3 8 9 5 9-5M3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+  <symbol id="i-members" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3.5 19c.6-3 2.6-4.8 5.5-4.8s4.9 1.8 5.5 4.8M15 14.5c2.6-.4 4.6 1 5.2 3.6"/></symbol>
+  <symbol id="i-shift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2M7 3.5 4.5 6M17 3.5 19.5 6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.6"/><path d="M16.2 16.2 21 21"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 5L20 6.5"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 21.5 20h-19Z"/><path d="M12 9v5M12 17.5h.01"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8V3h10v5M7 17H4V9h16v8h-3M7 14h10v7H7z"/><path d="M17 11h.01"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6M9 16h3"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="17" height="13" rx="2.5"/><path d="M8 6V3h8v3M8 12a4 4 0 0 1 8 0M12 12l2.4-2.4"/></symbol>
+  <symbol id="i-cash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 9.5h.01M18 14.5h.01"/></symbol>
+  <symbol id="i-wechat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4.5c-4 0-6.5 2.6-6.5 5.5 0 1.7.9 3.2 2.3 4.2L4.8 17l3-1.6c.6.2 1.2.3 1.8.4"/><path d="M20.5 12.5c0-3-2.7-5-5.8-5s-5.7 2-5.7 5 2.6 5 5.7 5c.6 0 1.2-.1 1.8-.3L19.7 19l-.5-2.4c.8-.8 1.3-2 1.3-3.1Z"/><circle cx="7" cy="9.8" r=".7" fill="currentColor"/><circle cx="11" cy="9.8" r=".7" fill="currentColor"/><circle cx="13" cy="12.5" r=".7" fill="currentColor"/><circle cx="17" cy="12.5" r=".7" fill="currentColor"/></symbol>
+  <symbol id="i-alipay" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M7 8h10M12 6v4M8 13c1.5 3 5 5 8 5M17 12c-2 4-6 6-10 6"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H19v14H6.5A2.5 2.5 0 0 1 4 16.5Z"/><path d="M4 8h13M15.5 12.5h4.5v3h-4.5a1.5 1.5 0 0 1 0-3Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.2l3.4 2"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 10.5c0 5-7 10-7 10s-7-5-7-10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10.5" r="2.5"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14-4L3 10M3 4v6h6M4 13a8 8 0 0 0 14 4l3-3M21 20v-6h-6"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7v6l-4 2v-8Z"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v4a2 2 0 0 0 0 3v4H4v-4a2 2 0 0 0 0-3Z"/><path d="M9 8v8" stroke-dasharray="1.5 2.2"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20c.7-3.5 3.5-5.5 7.2-5.5s6.5 2 7.2 5.5"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m4 7 8-4 8 4v10l-8 4-8-4Z"/><path d="m4 7 8 4 8-4M12 11v10"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.5V4h7.5l9 9-7.5 7.5Z"/><circle cx="8" cy="8" r="1.3"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 19 6v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6Z"/><path d="m9 12 2 2 4-4"/></symbol>
+</svg>
