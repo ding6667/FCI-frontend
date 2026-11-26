@@ -45,7 +45,15 @@ npm run preview
 | `/app/admin/permissions` | 权限点 | 19 个权限点按业务域只读总览，标注权限码、类型与接口路径 |
 | `/app/admin/logs` | 操作日志 | 按模块 / 动作筛选，变更前后 JSON 对比，只读不可删 |
 
-管理台五个入口在侧栏 `SYSTEM ADMIN` 分组下，按权限点（`sys:employee:list`、`sys:role:list`、`sys:perm:list`、`sys:approval:list`、`sys:log:list`）显隐。
+侧栏按「一级系统 → 二级页面」两级组织，点一级名称进入该系统的落地页并自动展开，右侧箭头单独控制折叠：
+
+| 一级（侧栏） | 二级页面 | 权限点 |
+| --- | --- | --- |
+| 工作台（`/app/dashboard`） | 收银台、临期处置、订单履约、库存批次 | 临期处置需 `art:price:change`，其余无 |
+| 人员 | 会员、员工 | 员工需 `sys:employee:list` |
+| 审批中心（`/app/admin/approvals`） | 待办审批、角色授权、权限点、操作日志 | 依次需 `sys:approval:list`、`sys:role:list`、`sys:perm:list`、`sys:log:list` |
+
+一个子项都没有权限时整组隐藏（如普通收银员看不到审批中心）。工作台总览顶部另有「SUBSYSTEMS」入口条，与侧栏工作台下的四个二级页一一对应，可直接点进。
 
 ## 目录结构
 
@@ -58,7 +66,7 @@ src/
 │  └─ adminMock.ts # 管理台演示数据：员工、角色、权限树、审批单、操作日志
 ├─ features/       # 按业务域拆分的弹窗与局部组件（pos / expiry / orders / inventory / members / shift / admin）
 ├─ hooks/          # useNow 等通用 hooks
-├─ layouts/        # StoreLayout：侧边导航（含 SYSTEM ADMIN 分组）+ 顶栏 + 离线横幅
+├─ layouts/        # StoreLayout：侧栏两级导航（工作台 / 人员 / 审批中心）+ 顶栏 + 离线横幅
 ├─ lib/            # catalog（图标/色板）、format（金额/数量）、pricing（会员价、券、合计）、approvalFlow（审批流）
 ├─ pages/          # 六大业务页面 + 登录页；pages/admin/ 下为五个管理台页面
 ├─ store/          # useAppStore（作业台）+ useAdminStore（管理台），均为 Zustand

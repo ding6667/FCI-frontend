@@ -62,6 +62,54 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* 工作台下的四个作业系统入口：与侧栏「工作台」展开的二级项一一对应 */}
+      <div className="subsys-row" aria-label="工作台二级系统">
+        <div className="subsys-lead">
+          <b>SUBSYSTEMS</b>
+          <span>工作台二级</span>
+        </div>
+        <button className="subsys-card" onClick={() => navigate('/app/pos')}>
+          <span className="s-icon">
+            <Icon name="i-pos" />
+          </span>
+          <span className="s-text">
+            <b>收银台</b>
+            <span className="s-meta">称重 · 收款 · 挂单</span>
+          </span>
+          <span className="s-count">A01</span>
+        </button>
+        <button className="subsys-card" onClick={() => navigate('/app/expiry')}>
+          <span className="s-icon">
+            <Icon name="i-expiry" />
+          </span>
+          <span className="s-text">
+            <b>临期处置</b>
+            <span className="s-meta">折价 · 报损 · 退供</span>
+          </span>
+          <span className="s-count">{pendingExpiry.length} 批</span>
+        </button>
+        <button className="subsys-card" onClick={() => navigate('/app/orders')}>
+          <span className="s-icon">
+            <Icon name="i-orders" />
+          </span>
+          <span className="s-text">
+            <b>订单履约</b>
+            <span className="s-meta">拣货 · 打包 · 交接</span>
+          </span>
+          <span className="s-count">{pickable.length} 单</span>
+        </button>
+        <button className="subsys-card" onClick={() => navigate('/app/inventory')}>
+          <span className="s-icon">
+            <Icon name="i-stock" />
+          </span>
+          <span className="s-text">
+            <b>库存批次</b>
+            <span className="s-meta">在库 · 效期 · 周转</span>
+          </span>
+          <span className="s-count">{inventory.length} 品</span>
+        </button>
+      </div>
+
       <div className="kpi-grid">
         <article className="kpi-card">
           <div className="kpi-label">

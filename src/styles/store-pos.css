@@ -214,7 +214,7 @@ textarea.field{height:auto;min-height:76px;padding:10px 12px;line-height:1.7;res
 .rail-brand .brand-leaf{width:32px;height:32px}
 .rail-brand .brand-name{font-size:17px}
 .rail-brand .brand-sub{color:rgba(251,246,234,.42)}
-.rail-nav{position:relative;z-index:2;display:flex;flex-direction:column;gap:3px;margin-top:16px}
+.rail-nav{position:relative;z-index:2;display:flex;flex-direction:column;gap:3px;margin-top:14px;flex:1 1 auto;min-height:0}
 .rail-label{font-family:var(--mono);font-size:7.5px;letter-spacing:.22em;color:rgba(251,246,234,.32);padding:0 10px 8px}
 .rail-item{
   position:relative;display:flex;align-items:center;gap:10px;
@@ -233,6 +233,25 @@ textarea.field{height:auto;min-height:76px;padding:10px 12px;line-height:1.7;res
   color:#F3B18C;font-family:var(--mono);font-size:8.5px;display:grid;place-items:center;
 }
 .rail-item.active .rail-badge{background:var(--orange);border-color:var(--orange);color:#fff}
+/* 一级系统：工作台 / 人员 / 审批中心，点开才展开下面的二级页面 */
+.rail-group{display:flex;flex-direction:column;gap:2px}
+.rail-group+.rail-group{margin-top:5px}
+.rail-parent-row{position:relative;display:flex;align-items:center}
+.rail-parent{flex:1;width:100%;padding-right:30px}
+.rail-caret-btn{position:absolute;right:1px;top:50%;width:24px;height:24px;display:grid;place-items:center;border-radius:6px;color:rgba(251,246,234,.42);transition:background .16s,color .16s}
+.rail-caret-btn:hover{background:rgba(251,246,234,.08);color:var(--cream)}
+.rail-caret{width:13px;height:13px;flex:0 0 auto;opacity:.8;transition:transform .18s ease-out}
+.rail-group.open .rail-caret{transform:rotate(90deg)}
+.rail-group.active>.rail-parent-row>.rail-parent{color:var(--cream)}
+.rail-children{display:flex;flex-direction:column;gap:1px;padding:2px 0 2px 13px;animation:railIn .18s ease-out}
+.rail-item.rail-sub{min-height:34px;padding:0 8px 0 10px;font-size:11.5px;color:rgba(251,246,234,.58);border-radius:7px}
+.rail-item.rail-sub svg{width:15px;height:15px;opacity:.78}
+.rail-item.rail-sub:hover{color:var(--cream)}
+.rail-item.rail-sub.active{color:var(--cream);font-weight:600}
+.rail-item.rail-sub.active::before{top:9px;bottom:9px;width:2px}
+.rail-item.rail-sub .rail-badge{min-width:16px;height:15px;font-size:8px}
+.rail-item .rail-badge-soft{background:rgba(217,229,193,.12);border-color:rgba(217,229,193,.25);color:rgba(217,229,193,.7)}
+@keyframes railIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .rail-foot{position:relative;z-index:2;margin-top:auto;padding-top:12px}
 .rail-shift{
   display:flex;align-items:center;justify-content:space-between;gap:8px;
@@ -398,6 +417,27 @@ textarea.field{height:auto;min-height:76px;padding:10px 12px;line-height:1.7;res
 .quick-btn span{display:block;font-size:8px;color:var(--muted);margin-top:2px}
 .quick-btn .q-arrow{margin-left:auto;color:var(--line-strong)}
 .quick-btn .q-arrow svg{width:14px;height:14px}
+
+/* ================= 工作台 · 二级系统入口 ================= */
+.subsys-row{display:grid;grid-template-columns:94px repeat(4,1fr);gap:9px;margin:0 0 14px}
+.subsys-lead{display:flex;flex-direction:column;justify-content:center;padding-left:2px}
+.subsys-lead b{font-family:var(--mono);font-size:7.5px;font-weight:400;letter-spacing:.2em;color:var(--muted)}
+.subsys-lead span{font-size:9px;color:var(--ink-soft);margin-top:4px}
+.subsys-card{
+  display:flex;align-items:center;gap:9px;padding:9px 11px;text-align:left;
+  border:1px solid var(--line);border-radius:9px;background:transparent;
+  transition:border-color .18s ease-out,background .18s ease-out,transform .18s ease-out;
+}
+.subsys-card:hover{border-color:var(--green);background:var(--surface);transform:translateY(-1px)}
+.subsys-card .s-icon{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:rgba(47,107,73,.09);color:var(--green);flex:0 0 auto}
+.subsys-card .s-icon svg{width:14px;height:14px}
+.subsys-card .s-text{min-width:0}
+.subsys-card .s-text b{display:block;font-size:10.5px;font-weight:600;color:var(--ink)}
+.subsys-card .s-meta{display:block;font-size:8px;color:var(--muted);margin-top:2px}
+.subsys-card .s-count{
+  margin-left:auto;flex:0 0 auto;padding:2px 6px;border:1px solid var(--line);border-radius:99px;
+  font-family:var(--mono);font-size:8.5px;color:var(--ink-soft);
+}
 
 /* ================= 收银台 ================= */
 .pos-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:13px}
